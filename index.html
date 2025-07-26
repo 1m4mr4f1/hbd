@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Selamat Ulang Tahun Sayang</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow-x: hidden;
+      background: black;
+      color: white;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="fireworks"></canvas>
+  <div class="relative z-10 flex flex-col items-center justify-center min-h-screen py-8">
+    <h1 class="text-4xl md:text-6xl font-bold text-center mb-4">Selamat Ulang Tahun Kamu</h1>
+    <p class="text-center text-lg max-w-xl mb-6 px-4">Selamat ulang tahun Dek. Semoga panjang umur, murah rejeki, dan sehat selalu. Ingat selalu pesan kakak! Jaga kehormatan dan wibawa keluarga kita!</p>
+
+<button id="playPauseBtn" onclick="toggleAudio()" class="mt-4 text-white hover:scale-110 transition-transform duration-200">
+  <svg id="playPauseIcon" xmlns="http://www.w3.org/2000/svg" class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M8 5v14l11-7z" />
+  </svg>
+</button>
+  </div>
+
+  <audio id="audio" src="assets/music/serta-mulia.mp3"></audio>
+
+  <script>
+  const canvas = document.getElementById("fireworks");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  let fireworks = [];
+
+  class Firework {
+    constructor() {
+      this.x = Math.random() * canvas.width;
+      this.y = canvas.height;
+      this.targetY = Math.random() * canvas.height * 0.4 + 100;
+      this.dy = -Math.random() * 5 - 5;
+      this.exploded = false;
+      this.particles = [];
+      this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+    }
+
+    update() {
+      if (!this.exploded) {
+        this.y += this.dy;
+        if (this.y <= this.targetY) {
+          this.exploded = true;
+          for (let i = 0; i < 50; i++) {
+            const angle = Math.random() * 2 * Math.PI;
+            const speed = Math.random() * 4;
+            const dx = Math.cos(angle) * speed;
+            const dy = Math.sin(angle) * speed;
+            this.particles.push(new Particle(this.x, this.y, dx, dy, this.color));
+          }
+        }
+      } else {
+        this.particles.forEach(p => p.update());
+        this.particles = this.particles.filter(p => p.alpha > 0);
+      }
+    }
+
+    draw() {
+      if (!this.exploded) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      } else {
+        this.particles.forEach(p => p.draw());
+      }
+    }
+
+    isDone() {
+      return this.exploded && this.particles.length === 0;
+    }
+  }
+
+  class Particle {
+    constructor(x, y, dx, dy, color) {
+      this.x = x;
+      this.y = y;
+      this.dx = dx;
+      this.dy = dy;
+      this.alpha = 1;
+      this.color = color;
+    }
+    update() {
+      this.x += this.dx;
+      this.y += this.dy;
+      this.dy += 0.05; // gravity
+      this.alpha -= 0.01;
+    }
+    draw() {
+      ctx.save();
+      ctx.globalAlpha = this.alpha;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function animate() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (Math.random() < 0.05) {
+      fireworks.push(new Firework());
+    }
+
+    fireworks.forEach((fw, i) => {
+      fw.update();
+      fw.draw();
+      if (fw.isDone()) {
+        fireworks.splice(i, 1);
+      }
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+
+  
+</script>
+
+<script>
+  const audio = document.getElementById('audio');
+  const icon = document.getElementById('playPauseIcon');
+
+  function toggleAudio() {
+    if (audio.paused) {
+      audio.play();
+      icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+    } else {
+      audio.pause();
+      icon.innerHTML = '<path d="M8 5v14l11-7z" />';
+    }
+  }
+</script>
